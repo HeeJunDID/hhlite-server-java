@@ -1,0 +1,258 @@
+openapi: '3.0.1'
+
+info:
+  title: Concert Reservation API
+  version: '1.0.0'
+  description:
+    콘서트 예약 서비스 API 명세서
+
+servers:
+  - url : http://localhost:8080/api/v1
+    description: Local Server
+
+tags:
+  - name: Auth
+    description: 유저 로그인/회원가입 API
+  - name: Resources
+    description: 예약 가능 날짜/좌석 API
+  - name: Reservation
+    description: 좌석 예약 요청 API
+  - name: Point
+    description: 포인트 충전/조회 API
+  - name: Payment
+    description: 결제 API
+  - name: Queue
+    description: 유저 대기열 관리 API
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: 로그인
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: { type:string, example: userMail@example.com }
+                password: { type:string, example: password}
+      responses:
+        '200':
+          description: 로그인성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schema:
+                    $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: 인증실패
+
+  /resources/{resourceId}/available-dates:
+    get:
+      tags: [Resources]
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      summary: 예약 가능 좌석 조회
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableDatesResponse'
+        '400':
+          description: 예약가능 좌석 조회 실패
+
+  /resources/{resourceId}/available-seats:
+    get:
+      tags: [Resources]
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      summary: 예약 가능 좌석 조회
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableSeatsResponse'
+        '400':
+          description: 예약가능 좌석 조회 실패
+
+  /reservations:
+    post:
+      tags: [Reservation]
+      summary: 좌석 예약
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        '201':
+          description: 예약 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '409':
+          description: 좌석 충돌
+
+  /point/balance:
+    get:
+      tags: [Point]
+      summary: 포인트 잔액 조회
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PointBalance'
+
+  /payment:
+    post:
+      tags: [Payment]
+      summary: 결제 확정
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: 결제성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '409':
+          description: 결제충돌
+
+  /queue/tokens:
+    post:
+      tags: [Queue]
+      summary: 대기열 토큰 발급
+      responses:
+        '201':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueTokenResponse'
+        '429':
+          description: 대기열 초과
+
+
+
+components:
+  schemas:
+    TokenResponse:
+      type: object
+      properties:
+        accessToken: { type: string, example: eyJ... }
+        refreshToken: { type: string, example: eyJ...}
+
+    AvailableDatesResponse:
+      type: object
+      properties:
+        resourceId: { type: string, example: 123}
+        availableDates :
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                example: "2025-12-29"
+              remainingSeats:
+                type: integer
+                example: 42
+
+    AvailableSeatsResponse:
+      type: object
+      properties:
+        resourceId: { type: string, example: 123}
+        date: {type: string, format: date, example: "2025-12-28"}
+        availableSeats :
+          type: array
+          items:
+            type: object
+            properties:
+              seatId:
+                type: string
+                example: "A10"
+              seatType:
+                type: string
+                enum: [VIP, R, S, A, B, C]
+              price:
+                type: integer
+                example: 70000
+
+    ReservationRequest:
+      type: object
+      properties:
+        resourceId: { type: string, exmaple: 123}
+        seatsIds:
+          type: array
+          items:
+            type: integer
+            example: 12
+
+    ReservationResponse:
+      type: object
+      properties:
+        reservationId: {type: integer, exmaple: 1001}
+        status: { type: string, enum: [HELD, CONFIRMD]}
+        expiresAt: { type: string, format: date-time}
+
+    PointBalance:
+      type: object
+      properties:
+        balanceAmt: {type: integer, example: 1000}
+
+    PaymentRequest:
+      type: object
+      properties:
+        reservationId: { type: integer, example: 1001}
+        payAmt: { type: integer, example: 10000}
+
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId: { type: integer, example: 1111}
+        status: { type: string, enum: [SUCCESSED, FAILED]}
+        paidAt: { type: string, format: date-time }
+
+    QueueTokenResponse:
+      type: object
+      properties:
+        token: { type: string, example: queueToken_123}
+        position: { type: integer, example: 20 }
+        limitSecond: { type: integer, example: 300 }
+
+
+
+
+
