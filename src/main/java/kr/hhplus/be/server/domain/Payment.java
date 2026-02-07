@@ -12,6 +12,9 @@ import java.util.Date;
 @Builder
 public class Payment {
 
+    public static final String STATUS_COMPLETED = "COMPLETED";
+    public static final String STATUS_FAILED = "FAILED";
+
     @Id
     @Column(name = "payment_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +32,14 @@ public class Payment {
     private Date paidAt;
 
     private long paymentAmt;
+
+    public static Payment createCompleted(Long reservationId, Long userId, long amount) {
+        return Payment.builder()
+                .reservationId(reservationId)
+                .userId(userId)
+                .paymentAmt(amount)
+                .status(STATUS_COMPLETED)
+                .paidAt(new Date())
+                .build();
+    }
 }

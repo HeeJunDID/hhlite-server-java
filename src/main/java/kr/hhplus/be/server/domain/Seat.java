@@ -10,6 +10,10 @@ import lombok.*;
 @Builder
 public class Seat {
 
+    public static final String STATUS_AVAILABLE = "AVAILABLE";
+    public static final String STATUS_RESERVED = "RESERVED";
+    public static final String STATUS_SOLD = "SOLD";
+
     @Id
     @Column(name = "seat_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,4 +30,12 @@ public class Seat {
     private String status;
 
     private String grade;
+
+    public void markAsSold() {
+        this.status = STATUS_SOLD;
+    }
+
+    public void release() {
+        this.status = STATUS_AVAILABLE;
+    }
 }
