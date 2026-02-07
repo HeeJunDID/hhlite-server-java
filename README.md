@@ -1,31 +1,13 @@
-# 콘서트 예약 서비스
-대기열 시스템 기반 예약 서비스
+## 프로젝트
 
-# 문서
-- [API 명세서](./docs/openapi.yml)
-- [ERD](./docs/erd.md)
-- [인프라 구성도](./docs/infra.md)
-- [시퀀스 다이어그램](./docs/sequence-diagram.yml)
+## Getting Started
 
-# API
-- 예약 가능 날짜/좌석 API(콘서트 조회)
-- 좌석 예약 요청 API
-- 포인트 충전/조회 API
-- 결제 API
-- 유저 대기열 토큰 발급 API
+### Prerequisites
 
-# 사용자 시나리오
-- 예상 시나리오
-    1. 고객 로그인 후 특정 콘서트 선택
-    2. 예약 가능 날짜/좌석 목록 조회
-    3. 예약 가능한 날짜/좌석 선택
-    4. 좌석 예약 요청
-        - 좌석 예약 요청 시 해당 고객에게 5분간 임시 배정
-        - 배정 시간 내에 결제 미완료 시 임시 배정 해제
-    5. 포인트 충전/조회
-    6. 결제
-## 기술
-- Java 21, Spring Boot3, JPA, JWT
-- JUnit5
+#### Running Docker Containers
 
+`local` profile 로 실행하기 위하여 인프라가 설정되어 있는 Docker 컨테이너를 실행해주셔야 합니다.
 
+```bash
+docker-compose up -d
+```
