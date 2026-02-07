@@ -35,6 +35,10 @@ public class Seat {
         this.status = STATUS_SOLD;
     }
 
+    public void markAsReserved() {
+        this.status = STATUS_RESERVED;
+    }
+
     public void release() {
         this.status = STATUS_AVAILABLE;
     }
