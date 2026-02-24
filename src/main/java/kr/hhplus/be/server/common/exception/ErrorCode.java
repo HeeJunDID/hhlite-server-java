@@ -33,7 +33,12 @@ public enum ErrorCode {
 
     // Payment
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "결제 정보를 찾을 수 없습니다."),
-    PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "P002", "결제에 실패했습니다.");
+    PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "P002", "결제에 실패했습니다."),
+
+    // Queue
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Q001", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Q002", "만료된 토큰입니다."),
+    TOKEN_NOT_ACTIVE(HttpStatus.FORBIDDEN, "Q003", "아직 입장할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
