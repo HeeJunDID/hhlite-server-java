@@ -98,8 +98,8 @@ class ReserveSeatServiceTest {
                     assertThat(be.getErrorCode()).isEqualTo(ErrorCode.SEAT_NOT_FOUND);
                 });
 
-        verify(updateSeatStatusPort, never()).markAsReserved(any());
-        verify(saveReservationPort, never()).save(any());
+        verify(updateSeatStatusPort, never()).markAsReserved(any(Long.class));
+        verify(saveReservationPort, never()).save(any(Reservation.class));
     }
 
     @Test
@@ -121,8 +121,8 @@ class ReserveSeatServiceTest {
                     assertThat(be.getErrorCode()).isEqualTo(ErrorCode.SEAT_ALREADY_RESERVED);
                 });
 
-        verify(updateSeatStatusPort, never()).markAsReserved(any());
-        verify(saveReservationPort, never()).save(any());
+        verify(updateSeatStatusPort, never()).markAsReserved(any(Long.class));
+        verify(saveReservationPort, never()).save(any(Reservation.class));
     }
 
     @Test

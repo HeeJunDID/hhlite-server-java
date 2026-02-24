@@ -46,12 +46,18 @@ dependencies {
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.testcontainers:junit-jupiter")
-	testImplementation("org.testcontainers:mysql")
+	testImplementation("org.testcontainers:junit-jupiter:1.20.6")
+	testImplementation("org.testcontainers:mysql:1.20.6")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testRuntimeOnly("com.h2database:h2")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
 	systemProperty("user.timezone", "UTC")
+	systemProperty("DOCKER_HOST", "unix:///var/run/docker.sock")
+	systemProperty("DOCKER_API_VERSION", "1.44")
+	environment("DOCKER_HOST", "unix:///var/run/docker.sock")
+	environment("DOCKER_API_VERSION", "1.44")
+	environment("TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE", "/var/run/docker.sock")
 }

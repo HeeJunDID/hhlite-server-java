@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.service;
 
+import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.common.exception.ErrorCode;
 import kr.hhplus.be.server.domain.Concert;
 import kr.hhplus.be.server.repository.ConcertRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -56,8 +58,11 @@ class ConcertServiceTest {
 
         // when & then
         assertThatThrownBy(() -> concertService.getConcert(concertId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("콘서트를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> {
+                    BusinessException be = (BusinessException) e;
+                    assertThat(be.getErrorCode()).isEqualTo(ErrorCode.CONCERT_NOT_FOUND);
+                });
     }
 
     @Test
