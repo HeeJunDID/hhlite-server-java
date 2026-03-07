@@ -2,6 +2,7 @@ package kr.hhplus.be.server.reservation.application.service;
 
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.common.exception.ErrorCode;
+import kr.hhplus.be.server.common.lock.DistributedLock;
 import kr.hhplus.be.server.reservation.application.port.in.ReservationResult;
 import kr.hhplus.be.server.reservation.application.port.in.ReserveSeatCommand;
 import kr.hhplus.be.server.reservation.application.port.in.ReserveSeatUseCase;
@@ -24,6 +25,7 @@ public class ReserveSeatService implements ReserveSeatUseCase {
     private final SaveReservationPort saveReservationPort;
 
     @Override
+    @DistributedLock(key = "'lock:seat:' + #command.seatId()")
     public ReservationResult execute(ReserveSeatCommand command) {
         // 1. 좌석 조회
         SeatInfo seat = loadSeatPort.loadById(command.seatId())

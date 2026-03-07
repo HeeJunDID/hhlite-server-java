@@ -2,6 +2,7 @@ package kr.hhplus.be.server.payment.application.service;
 
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.common.exception.ErrorCode;
+import kr.hhplus.be.server.common.lock.DistributedLock;
 import kr.hhplus.be.server.payment.application.port.in.PaymentResult;
 import kr.hhplus.be.server.payment.application.port.in.ProcessPaymentCommand;
 import kr.hhplus.be.server.payment.application.port.in.ProcessPaymentUseCase;
@@ -27,6 +28,7 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
     private final MarkSeatAsSoldPort markSeatAsSoldPort;
 
     @Override
+    @DistributedLock(key = "'lock:user:' + #command.userId()")
     public PaymentResult execute(ProcessPaymentCommand command) {
         // 1. 예약 조회 및 검증
         ReservationInfo reservation = loadReservationPort.loadById(command.reservationId())
