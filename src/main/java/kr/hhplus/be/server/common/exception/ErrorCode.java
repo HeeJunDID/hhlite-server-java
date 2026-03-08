@@ -38,7 +38,10 @@ public enum ErrorCode {
     // Queue
     INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Q001", "유효하지 않은 토큰입니다."),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Q002", "만료된 토큰입니다."),
-    TOKEN_NOT_ACTIVE(HttpStatus.FORBIDDEN, "Q003", "아직 입장할 수 없습니다.");
+    TOKEN_NOT_ACTIVE(HttpStatus.FORBIDDEN, "Q003", "아직 입장할 수 없습니다."),
+
+    // Distributed Lock
+    LOCK_ACQUISITION_FAILED(HttpStatus.CONFLICT, "L001", "요청이 많아 처리할 수 없습니다. 잠시 후 다시 시도해주세요.");
 
     private final HttpStatus status;
     private final String code;
