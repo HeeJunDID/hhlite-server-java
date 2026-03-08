@@ -9,10 +9,13 @@ import kr.hhplus.be.server.payment.application.port.out.*;
 import kr.hhplus.be.server.payment.domain.Payment;
 import kr.hhplus.be.server.payment.domain.PaymentHistory;
 import kr.hhplus.be.server.payment.domain.PaymentStatus;
+import kr.hhplus.be.server.ranking.application.port.out.ConcertRankingPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,6 +28,8 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
     private final SavePaymentHistoryPort savePaymentHistoryPort;
     private final ConfirmReservationPort confirmReservationPort;
     private final MarkSeatAsSoldPort markSeatAsSoldPort;
+    private final LoadConcertIdBySeatPort loadConcertIdBySeatPort;
+    private final ConcertRankingPort concertRankingPort;
 
     @Override
     public PaymentResult execute(ProcessPaymentCommand command) {
@@ -63,12 +68,20 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
         // 6. 예약 확정
         confirmReservationPort.confirm(command.reservationId(), savedPayment.getPaymentId());
 
-        // 7. 좌석 판매 완료 처리
+        // 7. 좌석 판매 완료 처리 및 랭킹 갱신
         if (reservation.seatId() != null) {
             markSeatAsSoldPort.markAsSold(reservation.seatId());
+            updateConcertRanking(reservation.seatId());
         }
 
         return toResult(savedPayment);
+    }
+
+    private void updateConcertRanking(Long seatId) {
+        loadConcertIdBySeatPort.loadConcertIdBySeatId(seatId).ifPresentOrElse(
+                concertRankingPort::incrementSoldCount,
+                () -> log.warn("seatId={}에 대한 concertId를 찾을 수 없어 랭킹 갱신을 건너뜁니다.", seatId)
+        );
     }
 
     private void validateReservation(ReservationInfo reservation) {
