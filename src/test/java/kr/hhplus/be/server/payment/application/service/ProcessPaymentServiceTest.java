@@ -117,7 +117,7 @@ class ProcessPaymentServiceTest {
                     assertThat(be.getErrorCode()).isEqualTo(ErrorCode.RESERVATION_NOT_FOUND);
                 });
 
-        verify(deductUserBalancePort, never()).deductBalance(any(), any());
+        verify(deductUserBalancePort, never()).deductBalance(any(Long.class), any(Long.class));
     }
 
     @Test
@@ -210,7 +210,7 @@ class ProcessPaymentServiceTest {
                     assertThat(be.getErrorCode()).isEqualTo(ErrorCode.INSUFFICIENT_BALANCE);
                 });
 
-        verify(deductUserBalancePort, never()).deductBalance(any(), any());
+        verify(deductUserBalancePort, never()).deductBalance(any(Long.class), any(Long.class));
     }
 
     @Test

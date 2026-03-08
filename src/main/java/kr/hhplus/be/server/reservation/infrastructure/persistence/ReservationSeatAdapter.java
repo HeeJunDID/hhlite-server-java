@@ -20,7 +20,7 @@ public class ReservationSeatAdapter implements LoadSeatPort, UpdateSeatStatusPor
 
     @Override
     public Optional<SeatInfo> loadById(Long seatId) {
-        return seatRepository.findById(seatId)
+        return seatRepository.findByIdWithLock(seatId)
                 .map(this::toSeatInfo);
     }
 
