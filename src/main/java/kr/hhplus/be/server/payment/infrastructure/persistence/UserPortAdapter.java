@@ -20,13 +20,13 @@ public class UserPortAdapter implements LoadUserPort, DeductUserBalancePort {
 
     @Override
     public Optional<UserInfo> loadById(Long userId) {
-        return userRepository.findById(userId)
+        return userRepository.findByIdWithLock(userId)
                 .map(user -> new UserInfo(user.getUserId(), user.getBalance()));
     }
 
     @Override
     public void deductBalance(Long userId, long amount) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdWithLock(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         user.usePoint(amount);
     }
