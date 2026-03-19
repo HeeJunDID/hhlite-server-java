@@ -2,6 +2,7 @@ package kr.hhplus.be.server.payment.application.service;
 
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.common.exception.ErrorCode;
+import kr.hhplus.be.server.payment.application.event.ReservationConfirmedEvent;
 import kr.hhplus.be.server.payment.application.port.in.PaymentResult;
 import kr.hhplus.be.server.payment.application.port.in.ProcessPaymentCommand;
 import kr.hhplus.be.server.payment.application.port.in.ProcessPaymentUseCase;
@@ -12,6 +13,7 @@ import kr.hhplus.be.server.payment.domain.PaymentStatus;
 import kr.hhplus.be.server.ranking.application.port.out.ConcertRankingPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
     private final MarkSeatAsSoldPort markSeatAsSoldPort;
     private final LoadConcertIdBySeatPort loadConcertIdBySeatPort;
     private final ConcertRankingPort concertRankingPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public PaymentResult execute(ProcessPaymentCommand command) {
@@ -69,19 +72,28 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
         confirmReservationPort.confirm(command.reservationId(), savedPayment.getPaymentId());
 
         // 7. 좌석 판매 완료 처리 및 랭킹 갱신
+        Long concertId = null;
         if (reservation.seatId() != null) {
             markSeatAsSoldPort.markAsSold(reservation.seatId());
-            updateConcertRanking(reservation.seatId());
+            concertId = loadConcertIdBySeatPort.loadConcertIdBySeatId(reservation.seatId()).orElse(null);
+            if (concertId != null) {
+                concertRankingPort.incrementSoldCount(concertId);
+            } else {
+                log.warn("seatId={}에 대한 concertId를 찾을 수 없어 랭킹 갱신을 건너뜁니다.", reservation.seatId());
+            }
         }
 
-        return toResult(savedPayment);
-    }
+        // 8. 예약 확정 이벤트 발행 (트랜잭션 커밋 후 데이터 플랫폼으로 전송)
+        eventPublisher.publishEvent(new ReservationConfirmedEvent(
+                savedPayment.getPaymentId(),
+                command.reservationId(),
+                command.userId(),
+                concertId,
+                reservation.amount(),
+                savedPayment.getPaidAt()
+        ));
 
-    private void updateConcertRanking(Long seatId) {
-        loadConcertIdBySeatPort.loadConcertIdBySeatId(seatId).ifPresentOrElse(
-                concertRankingPort::incrementSoldCount,
-                () -> log.warn("seatId={}에 대한 concertId를 찾을 수 없어 랭킹 갱신을 건너뜁니다.", seatId)
-        );
+        return toResult(savedPayment);
     }
 
     private void validateReservation(ReservationInfo reservation) {
